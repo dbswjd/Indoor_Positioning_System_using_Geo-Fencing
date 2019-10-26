@@ -1,0 +1,61 @@
+body,h1,h2,h3,h4,h5 {font-family:"Poppins", sans-serif}
+body {font-size:15px;}
+
+form{ width: 90%; margin: 10px auto; padding: 10px; text-align:center;}
+label{ display:block; position: relative; margin:20px 0px;}
+.label-txt{position:relative; font-size:13px; }
+.input{width:80%; padding: 10x; outline:none;  background: transparent; border: none;  border-bottom: 1px solid black;}
+
+.myblue {color: #005baa }
+.pblue {color: #004282}
+.myblue-back { background: #005baa; color: white;}
+.pblue-back{background: #004282; color: white;}
+
+.head2{ text-align: center; width:5%;}
+.video{ margin:20px;}
+
+div.relative{
+    position: relative;
+}
+
+.center {
+    margin: auto;
+}
+
+#torso {
+    position:relative;
+    margin-top:10px;
+    width: 100%;
+    height: 590px;
+}
+
+#cesium {
+    position: static;
+    width:64.5%; 
+    height:100%; 
+    float: left;
+}
+
+
+#cctv {
+    position: static;
+    width: 34.5%;
+    height: 100%;
+    float: right;
+    padding-left: 0;
+    padding-right: 20px;
+}
+/* border: 1px solid gold */
+
+#cctv_red {
+    border: 10px solid red;
+}
+
+#cctvTag {
+    height: 4%;
+    text-align: center;
+}
+
+
+
+

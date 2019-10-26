@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="https://cesiumjs.org/releases/1.59/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesiumjs.org/releases/1.59/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    var addPolygonEntity_withoutIndex = function(name, degreeArray, extrudedHeight, meterial, outlineColor=Cesium.Color.BLACK){
+      viewer.entities.add({
+        name : name,
+        polygon : {
+          hierarchy : Cesium.Cartesian3.fromDegreesArrayHeights(degreeArray),
+          extrudedHeight: extrudedHeight,
+          perPositionHeight : true,
+          material : meterial,
+          outline : true,
+          outlineColor : outlineColor
+        }
+      });
+    }
+    
+    var addPolygonEntity = function(i, name, degreeArray, extrudedHeight, meterial, outlineColor=Cesium.Color.BLACK){
+      cell[i] = viewer.entities.add({
+        name : name + "_4F",
+        polygon : {
+          hierarchy : Cesium.Cartesian3.fromDegreesArrayHeights(degreeArray),
+          extrudedHeight: extrudedHeight,
+          perPositionHeight : true,
+          material : meterial,
+          outline : true,
+          outlineColor : outlineColor
+        },
+        label : {
+          text : name
+        }
+      });
+    }
+
+    function convertCCTV(cctv_id){
+      // var cctv4 = document.getElementById("cctv4");
+      // var cctv3 = document.getElementById("cctv3");
+      // //var cctv = document.getElementById("cctv");
+      // if (cctv_id == 11){
+      //   cctv4.style.height = "100%";
+      //   cctv3.style.height = "0%";
+      //   cctv4.style.border = "10px solid red";
+      // } else {
+      //   cctv4.style.boarder = "none"
+      // }
+
+      var cctv = document.getElementById("cctv");
+      $("#cctv").empty();
+      if (cctv_id == 11){
+        $('#cctv').append("<img id=\"cctv_red\" class=\"center\" width=\"100%\" height=\"100%\" src=\"http://192.168.0.4:1234/videostream.cgi?user=admin&pwd=\">");
+      } else {
+        $('#cctv').append("<img id=\"cctvIMG\" class=\"center\" width=\"100%\" height=\"50%\" src=\"http://192.168.0.3:1234/videostream.cgi?user=admin&pwd=\">");
+        $('#cctv').append("<img id=\"cctvIMG\" class=\"center\" width=\"100%\" height=\"50%\" src=\"http://192.168.0.4:1234/videostream.cgi?user=admin&pwd=\">");
+        
+      }
+    }
+  
+    $(document).ready(function() {
+      
+      $.getJSON('/data/313.json', function(building){
+        var degreeArray = new Array();
+        var coordinatesX = building.lat;
+        var coordinatesY = building.lon;
+
+        for (var i=0; i<24; i++){
+          degreeArray.push(coordinatesY[i], coordinatesX[i], 20.0);
+        }
+        degreeArray.push(129.0828243, 35.235455, 20.0);
+        addPolygonEntity_withoutIndex('313', degreeArray, 0, Cesium.Color.CORNSILK.withAlpha(0.2));
+      }); //end of $.getJSON('/data/313.json'
+        
+      $.getJSON('/data/real_313_4F.json', function(data){
+        for (var c=0; c<data.cellSpaceMember.length; c++){
+          var exterior = data.cellSpaceMember[c].exterior;
+          var coordinateArray4F = new Array();
+          var coordinateArray2F = new Array();
+          if (c == 27 || c == 0){
+            for (var i=0; i<exterior.length; i++){
+              coordinateArray4F.push(exterior[i][1], exterior[i][0], 15.0);
+            }
+            addPolygonEntity(c, data.cellSpaceMember[c].name.toString(), coordinateArray4F, 10.0, Cesium.Color.CORNSILK.withAlpha(0.3));
+          } else{
+            if (c == 13){
+              var coordinateArray3F = new Array();
+              for (var i=0; i<exterior.length; i++){
+                coordinateArray3F.push(exterior[i][1], exterior[i][0], 10.0);
+              }
+             addPolygonEntity_withoutIndex(data.cellSpaceMember[c].name.toString(), coordinateArray3F, 5.0, Cesium.Color.CORNSILK.withAlpha(0.2));
+            }
+            
+            for (var i=0; i<exterior.length; i++){
+              coordinateArray4F.push(exterior[i][1], exterior[i][0], 15.0);
+              coordinateArray2F.push(exterior[i][1], exterior[i][0], 0.0);
+            }
+            addPolygonEntity(c, data.cellSpaceMember[c].name.toString(), coordinateArray4F, 10.0, Cesium.Color.CORNSILK.withAlpha(0.3));
+            addPolygonEntity_withoutIndex(data.cellSpaceMember[c].name.toString(), coordinateArray2F, 5.0, Cesium.Color.CORNSILK.withAlpha(0.2));
+          }
+        }
+        viewer.zoomTo(viewer.entities);
+      }); //end of $.getJSON('/data/real_313_4F.json'
+
+      var prev=-1, current=0;
+      var prevLocation = Cesium.Cartesian3.fromDegrees(129.082605, 35.235043);
+      var currentLocation = Cesium.Cartesian3.fromDegrees(129.082605, 35.235043);
+
+      var start = Cesium.JulianDate.fromDate(new Date());
+      var stop = Cesium.JulianDate.addSeconds(start, 2, new Cesium.JulianDate());
+
+      setInterval(function(){
+        $.getJSON('/data/location.json', function(data){  
+          $.post('/where', {lat: data.lat, lon: data.lon, floor: data.floor})
+            .done(function (room){
+              console.log('which room: ', room);
+              if (room != -1){ //in 313
+                start = stop;
+                stop = Cesium.JulianDate.addSeconds(start, 2, new Cesium.JulianDate());
+
+                viewer.clock.startTime = start.clone();
+                viewer.clock.stopTime = stop.clone();
+                viewer.clock.currentTime = start.clone();
+
+                prevLocation = currentLocation;
+                var position = new Cesium.SampledPositionProperty(); 
+                var orientation;
+
+                prev = current;
+                current = Number(room);
+
+                switch (data.floor){
+                case 4:
+                    currentLocation = Cesium.Cartesian3.fromDegrees(data.lon, data.lat, 10);
+                    var mid = Cesium.JulianDate.addSeconds(start, 0.5, new Cesium.JulianDate());
+                    var midLocation;
+
+                    if (current != 0){ //in room
+                        if (prev == current){
+                            position.addSamples([start, stop], [prevLocation, currentLocation]);
+                        } else { //into a room
+                            if (current == 11) {//410
+                                midLocation = Cesium.Cartesian3.fromDegrees(129.082742, 35.235162, 10);
+                                //convertCCTV(11);
+                            } else if (current == 23){ //422
+                                midLocation = Cesium.Cartesian3.fromDegrees(129.082742, 35.235350, 10);
+                                // convertCCTV(422);
+                            }
+                            position.addSamples([start, mid, stop], [prevLocation, midLocation, currentLocation]);
+                            cell[prev].polygon.material = Cesium.Color.CORNSILK.withAlpha(0.6);
+                            console.log("Aa", current);
+                            $.post('/exist', {name:"C"+(current+1)+"_4F"})
+                            .done(function(exist){
+                                console.log("exist", exist);
+                                if (exist == true){
+                                    convertCCTV(current);
+                                    cell[current].polygon.material = Cesium.Color.RED.withAlpha(0.5);
+                                } else {
+                                    cell[current].polygon.material = Cesium.Color.BLUE.withAlpha(0.5);
+                                }
+                            });
+                        }                    
+                    } else { // in corridor
+                      convertCCTV(0);
+                        if (prev > 0){ //out a room
+                            //cell[current].polygon.material = Cesium.Color.BLUE.withAlpha(0.5);
+                            $.post('/exist', {name:"C"+(prev+1)+"_4F"})
+                            .done(function(exist){
+                                if (exist == true){
+                                    cell[prev].polygon.material = Cesium.Color.CRIMSON.withAlpha(0.1);
+                                } else {
+                                    cell[prev].polygon.material = Cesium.Color.CORNSILK.withAlpha(0.6);
+                                }
+                                
+                            });
+                        }
+                        position.addSamples([start, stop], [prevLocation, currentLocation]);
+                    }
+                    orientation = new Cesium.VelocityOrientationProperty(position);
+                    break;
+                case 3:
+                    currentLocation = Cesium.Cartesian3.fromDegrees(129.082809, 35.235082, 10);
+                    position.addSamples([start, stop], [prevLocation, currentLocation]);
+                    var hpr = new Cesium.HeadingPitchRoll(0.0, 0.0, 0.0);
+                    orientation = Cesium.Transforms.headingPitchRollQuaternion(currentLocation, hpr);
+                    break;
+                default:
+                    currentLocation = Cesium.Cartesian3.fromDegrees(data.lon, data.lat, 0);
+                    position.addSamples([start, stop], [prevLocation, currentLocation]);
+                    orientation = new Cesium.VelocityOrientationProperty(position);
+                    break;
+                }
+                
+                person.availability = new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+                    start : start,
+                    stop : stop
+                })]);
+                person.position = position;
+                person.orientation = orientation;
+                viewer.trackedEntity = person;
+              } //end of if (room != -1) // in 313
+            }); // end of $.post('/where'
+        }); // end of $.getJSON('/data/location.json'
+      }, 1500); // end of setInterval
+
+      //update person information 
+      var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      handler.setInputAction(function(movement) {
+        var pickedObject = viewer.scene.pick(movement.position);
+        var showSelection = 'hidden';
+        if (Cesium.defined(pickedObject)) {
+          if (pickedObject.id.name == person.name || pickedObject.id.name == "313"){
+            showSelection = 'visible';
+            $.getJSON('/data/person_data.json', function(data){
+              var description = '';
+              description += '<p>이름: '+ data.name +'</p>';
+              description += '<p>연락처: '+ data.phone +'</p>';
+              description += '<p>이메일: '+ data.contact +'</p>';
+              pickedObject.id.description = description;
+
+            }); // end of $.getJSON('/data/person_data.json
+          } 
+        }
+        var cesium_infoBox = document.getElementsByClassName('cesium-infoBox').item(0);
+        cesium_infoBox.style.visibility = showSelection; 
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            //update person information 
+            
+      handler.setInputAction(function(movement) {
+        var pickedObject = viewer.scene.pick(movement.position);
+        if (Cesium.defined(pickedObject)) {
+          if (pickedObject.id.name == person.name){
+            $.getJSON('/data/person_data.json', function(data){
+              var label ='';
+              label += data.name;
+              pickedObject.id.label.text = label;
+            }); // end of $.getJSON('/data/person_data.json
+          } 
+        }
+   
+      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+      //update room enable
+      handler.setInputAction(function(movement) {
+        var pickedObject = viewer.scene.pick(movement.position);
+        if (Cesium.defined(pickedObject)) {
+            if (pickedObject.id.name == person.name || pickedObject.id.name == "313")
+                return;
+            var unable = confirm("사용 불가를 지정하려고 하며 사용 가능해지기 전까지는 사용할 수 없습니다.\n" + pickedObject.id.name);
+            if (unable){
+                pickedObject.id.polygon.material = Cesium.Color.CRIMSON.withAlpha(0.2);
+            } else {
+                pickedObject.id.polygon.material = Cesium.Color.CORNSILK.withAlpha(0.1);
+            }
+            $.post('/enable', {name: pickedObject.id.name, "unable": unable} )
+            .done(function (room){
+                console.log("updated!");
+            });
+            
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+    }); //end of $(document).ready
+    
+  </script>
+</head>
+<body>
+  
+    <header class="w3-container w3-top myblue-back w3-xlarge w3-padding" style="position:relative">
+        <a href="javascript:void(0)" class="w3-button myblue-back" onclick="w3_open()">=</a>
+        <span>Indoor Geo-Fencing</span>
+    </header>
+
+    <div id="torso">
+        <div id="cesium" class="w3-container"> 
+            <div id="cesiumContainer" class="center" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <div id="cctv">
+          <img id="cctv3" class="center" width="100%" height="50%" src="http://192.168.0.3:1234/videostream.cgi?user=admin&pwd=">
+          <img id="cctv4" class="center" width="100%" height="50%" src="http://192.168.0.4:1234/videostream.cgi?user=admin&pwd=">
+        </div>
+    </div>
+
+  <script>
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5N2Q4ZjFhMy1iMmI1LTRkOGItOWZjNi00NzkzMzEyNWZhOGEiLCJpZCI6MTI5MDEsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NjIxMzc2MzN9.p6bAt45FDrtwPEPF5ZkUWpmh5Pfik6WGFl_3LHkalJM';
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+                    timeline : false,
+                    animation : false,
+                    selectionIndicator : true,
+                    navigationHelpButton : false,
+                    infoBox : true,
+                    navigationInstructionsInitiallyVisible : false,
+                    shouldAnimate: true   
+                });
+    
+    //when you click, you can know lat, lon
+    viewer.canvas.addEventListener('click', function(e){
+      var mousePosition = new Cesium.Cartesian2(e.clientX, e.clientY);
+      var ellipsoid = viewer.scene.globe.ellipsoid;
+      var cartesian = viewer.camera.pickEllipsoid(mousePosition, ellipsoid);
+      if (cartesian) {
+          var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+          var longitudeString = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6);
+          var latitudeString = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6);
+          console.log('{\"lon\":',longitudeString,'\"lat\": ', latitudeString, '}');
+      }
+    }, false);
+
+    var cell = new Array();
+
+    var position = Cesium.Cartesian3.fromDegrees( 129.082785, 35.235142,  10);
+    var url = '../glb/Cesium_Man.glb';
+    var person = viewer.trackedEntity = viewer.entities.add({
+      name : 'Tracking Person\'s Information',
+      description: '<p>등록 정보가 표시 됩니다.</p>',
+      position : position,
+      viewFrom : new Cesium.Cartesian3(-5.0, 5.0, 4.0),
+      model : {
+          uri : url,
+          minimumPixelSize : 30,
+          color : Cesium.Color.DODGERBLUE,
+          colorBlendMode : Cesium.ColorBlendMode.REPLACE,
+      },
+      label : {
+            text : '가나다',
+            font : '20px Helvetica',
+            fillColor : Cesium.Color.RED,
+            outlineColor : Cesium.Color.BLACK,
+            outlineWidth : 3,
+            style : Cesium.LabelStyle.FILL_AND_OUTLINE,
+        }
+    });
+
+    var CCTVurl = '../glb/CCTV.glb';
+  var position1 = Cesium.Cartesian3.fromDegrees( 129.082732, 35.235083,  10.0);
+  var heading1 = Cesium.Math.toRadians(-75);
+  var pitch1 = Cesium.Math.toRadians(0);
+  var roll1 = Cesium.Math.toRadians(180);
+  var hpr1 = new Cesium.HeadingPitchRoll(heading1, pitch1, roll1);
+  var orientation1 = new Cesium.ConstantProperty(Cesium.Transforms.headingPitchRollQuaternion(position1, hpr1));
+  viewer.trackedEntity = viewer.entities.add({
+      position : position1, 
+      orientation : orientation1,
+      model : {
+          uri : CCTVurl,
+          scale : 0.035
+      }
+    });
+  var position2 = Cesium.Cartesian3.fromDegrees( 129.082808, 35.235177,  10.0);
+  var heading2 = Cesium.Math.toRadians(-175);
+  var pitch2 = Cesium.Math.toRadians(0);
+  var roll2 = Cesium.Math.toRadians(180);
+  var hpr2 = new Cesium.HeadingPitchRoll(heading2, pitch2, roll2);
+  var orientation2 = new Cesium.ConstantProperty(Cesium.Transforms.headingPitchRollQuaternion(position2, hpr2));
+  viewer.trackedEntity = viewer.entities.add({
+      position : position2, 
+      orientation : orientation2,
+      model : {
+          uri : CCTVurl,
+          scale : 0.035
+      }
+    });
+
+  </script>
+</body>
+</html>
