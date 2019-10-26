@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:gravity="bottom">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="40dp"
+        android:fontFamily="@font/nanumgothic"
+        android:text="정보 수정"
+        android:layout_marginBottom="100dp"
+        android:textColor="#000000"
+        android:textSize="40dp" />
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="이름"
+        android:inputType="textNoSuggestions"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textSize="15dp"
+        android:fontFamily="@font/nanumgothic"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginTop="10dp"/>
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/phonenumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="휴대폰 번호"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:textSize="15dp"
+        android:singleLine="true"
+        android:layout_marginHorizontal="40dp"
+        android:fontFamily="@font/nanumgothic"
+        android:layout_marginTop="10dp"/>
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="이메일"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:textSize="15dp"
+        android:singleLine="true"
+        android:layout_marginHorizontal="40dp"
+        android:fontFamily="@font/nanumgothic"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:id="@+id/SubmitButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginHorizontal="100dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="130dp"
+        android:background="@drawable/button_states"
+        android:paddingHorizontal="20dp"
+        android:text="REGISTER"
+        android:fontFamily="@font/nanumgothic"
+        android:textColor="@android:color/white"
+        android:textSize="15dp" />
+
+
+</LinearLayout>
+
